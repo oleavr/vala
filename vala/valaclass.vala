@@ -156,17 +156,41 @@ public class Vala.Class : ObjectTypeSymbol {
 	/**
 	 * Specifies the instance constructor.
 	 */
-	public Constructor constructor { get; set; }
+	public Constructor constructor {
+		get { return _constructor; }
+		set {
+			_constructor = value;
+			if (_constructor != null) {
+				_constructor.owner = scope;
+			}
+		}
+	}
 
 	/**
 	 * Specifies the class constructor.
 	 */
-	public Constructor class_constructor { get; set; }
+	public Constructor class_constructor {
+		get { return _class_constructor; }
+		set {
+			_class_constructor = value;
+			if (_class_constructor != null) {
+				_class_constructor.owner = scope;
+			}
+		}
+	}
 
 	/**
 	 * Specifies the static class constructor.
 	 */
-	public Constructor static_constructor { get; set; }
+	public Constructor static_constructor {
+		get { return _static_constructor; }
+		set {
+			_static_constructor = value;
+			if (_static_constructor != null) {
+				_static_constructor.owner = scope;
+			}
+		}
+	}
 
 	/**
 	 * Specifies the instance destructor.
@@ -176,6 +200,7 @@ public class Vala.Class : ObjectTypeSymbol {
 		set {
 			_destructor = value;
 			if (_destructor != null) {
+				_destructor.owner = scope;
 				if (_destructor.this_parameter != null) {
 					_destructor.scope.remove (_destructor.this_parameter.name);
 				}
@@ -188,12 +213,28 @@ public class Vala.Class : ObjectTypeSymbol {
 	/**
 	 * Specifies the class destructor.
 	 */
-	public Destructor? static_destructor { get; set; }
+	public Destructor? static_destructor {
+		get { return _static_destructor; }
+		set {
+			_static_destructor = value;
+			if (_static_destructor != null) {
+				_static_destructor.owner = scope;
+			}
+		}
+	}
 	
 	/**
 	 * Specifies the class destructor.
 	 */
-	public Destructor? class_destructor { get; set; }
+	public Destructor? class_destructor {
+		get { return _class_destructor; }
+		set {
+			_class_destructor = value;
+			if (_class_destructor != null) {
+				_class_destructor.owner = scope;
+			}
+		}
+	}
 
 	/**
 	 * Specifies whether this class denotes an error base.
@@ -204,7 +245,12 @@ public class Vala.Class : ObjectTypeSymbol {
 		}
 	}
 
+	Constructor _constructor;
+	Constructor _class_constructor;
+	Constructor _static_constructor;
 	Destructor? _destructor;
+	Destructor? _class_destructor;
+	Destructor? _static_destructor;
 
 	/**
 	 * Creates a new class.
@@ -608,14 +654,6 @@ public class Vala.Class : ObjectTypeSymbol {
 
 		checked = true;
 
-		var old_source_file = context.analyzer.current_source_file;
-		var old_symbol = context.analyzer.current_symbol;
-
-		if (source_reference != null) {
-			context.analyzer.current_source_file = source_reference.file;
-		}
-		context.analyzer.current_symbol = this;
-
 		foreach (DataType base_type_reference in get_base_types ()) {
 			if (!base_type_reference.check (context)) {
 				error = true;
@@ -869,9 +907,6 @@ public class Vala.Class : ObjectTypeSymbol {
 				}
 			}
 		}
-
-		context.analyzer.current_source_file = old_source_file;
-		context.analyzer.current_symbol = old_symbol;
 
 		return !error;
 	}

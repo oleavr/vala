@@ -58,7 +58,7 @@ public class Vala.UnlockStatement : CodeNode, Statement {
 		}
 
 		/* parent symbol must be the current class */
-		if (resource.symbol_reference.parent_symbol != context.analyzer.current_class) {
+		if (resource.symbol_reference.parent_symbol != context.analyzer.get_current_class (this)) {
 			error = true;
 			resource.error = true;
 			Report.error (resource.source_reference, "Only members of the current class are lockable");

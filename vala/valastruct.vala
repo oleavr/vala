@@ -481,14 +481,6 @@ public class Vala.Struct : TypeSymbol {
 
 		checked = true;
 
-		var old_source_file = context.analyzer.current_source_file;
-		var old_symbol = context.analyzer.current_symbol;
-
-		if (source_reference != null) {
-			context.analyzer.current_source_file = source_reference.file;
-		}
-		context.analyzer.current_symbol = this;
-
 		if (base_type != null) {
 			base_type.check (context);
 
@@ -545,9 +537,6 @@ public class Vala.Struct : TypeSymbol {
 				}
 			}
 		}
-
-		context.analyzer.current_source_file = old_source_file;
-		context.analyzer.current_symbol = old_symbol;
 
 		return !error;
 	}

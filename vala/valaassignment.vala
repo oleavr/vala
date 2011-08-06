@@ -108,20 +108,22 @@ public class Vala.Assignment : Expression {
 
 		checked = true;
 
+		var insert_block = context.analyzer.get_insert_block (this);
+
 		if (left is Tuple && operator == AssignmentOperator.SIMPLE && parent_node is ExpressionStatement) {
 			var tuple = (Tuple) left;
 
 			var local = new LocalVariable (null, get_temp_name (), right, right.source_reference);
 			var decl = new DeclarationStatement (local, source_reference);
 			decl.check (context);
-			insert_statement (context.analyzer.insert_block, decl);
+			insert_statement (insert_block, decl);
 
 			int i = 0;
 			ExpressionStatement stmt = null;
 			foreach (var expr in tuple.get_expressions ()) {
 				if (stmt != null) {
 					stmt.check (context);
-					insert_statement (context.analyzer.insert_block, stmt);
+					insert_statement (insert_block, stmt);
 				}
 
 				var temp_access = new MemberAccess.simple (local.name, right.source_reference);
@@ -156,7 +158,7 @@ public class Vala.Assignment : Expression {
 			}
 
 			if ((!(ma.symbol_reference is Signal || ma.symbol_reference is DynamicProperty) && ma.value_type == null) ||
-			    (ma.inner == null && ma.member_name == "this" && context.analyzer.is_in_instance_method ())) {
+			    (ma.inner == null && ma.member_name == "this" && context.analyzer.is_in_instance_method (this))) {
 				error = true;
 				Report.error (source_reference, "unsupported lvalue in assignment");
 				return false;
@@ -317,15 +319,16 @@ public class Vala.Assignment : Expression {
 					left.value_type = dynamic_prop.property_type.copy ();
 				}
 
+				var current_method = context.analyzer.get_current_method (this);
 				if (prop.set_accessor == null
-				    || (!prop.set_accessor.writable && !(context.analyzer.find_current_method () is CreationMethod || context.analyzer.is_in_constructor ()))) {
+				    || (!prop.set_accessor.writable && !(current_method is CreationMethod || context.analyzer.is_in_constructor (this)))) {
 					ma.error = true;
 					Report.error (ma.source_reference, "Property `%s' is read-only".printf (prop.get_full_name ()));
 					return false;
 				} else if (!context.deprecated
 				           && !prop.set_accessor.writable
-				           && context.analyzer.find_current_method () is CreationMethod) {
-					if (ma.inner.symbol_reference != context.analyzer.find_current_method ().this_parameter) {
+				           && current_method is CreationMethod) {
+					if (ma.inner.symbol_reference != current_method.this_parameter) {
 						// trying to set construct-only property in creation method for foreign instance
 						Report.error (ma.source_reference, "Property `%s' is read-only".printf (prop.get_full_name ()));
 						return false;

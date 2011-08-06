@@ -49,7 +49,7 @@ public class Vala.SwitchSection : Block {
 		}
 
 		labels.add (label);
-		label.section = this;
+		label.parent_node = this;
 	}
 	
 	/**
@@ -92,16 +92,11 @@ public class Vala.SwitchSection : Block {
 
 		checked = true;
 
+		owner = context.analyzer.get_current_symbol (parent_node).scope;
+
 		foreach (SwitchLabel label in get_labels ()) {
 			label.check (context);
 		}
-
-		owner = context.analyzer.current_symbol.scope;
-
-		var old_symbol = context.analyzer.current_symbol;
-		var old_insert_block = context.analyzer.insert_block;
-		context.analyzer.current_symbol = this;
-		context.analyzer.insert_block = this;
 
 		foreach (Statement st in get_statements ()) {
 			st.check (context);
@@ -115,9 +110,6 @@ public class Vala.SwitchSection : Block {
 		foreach (Statement stmt in get_statements ()) {
 			add_error_types (stmt.get_error_types ());
 		}
-
-		context.analyzer.current_symbol = old_symbol;
-		context.analyzer.insert_block = old_insert_block;
 
 		return !error;
 	}

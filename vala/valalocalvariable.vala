@@ -189,11 +189,9 @@ public class Vala.LocalVariable : Variable {
 			}
 		}
 
-		context.analyzer.current_symbol.scope.add (name, this);
-
 		// current_symbol is a Method if this is the `result'
 		// variable used for postconditions
-		var block = context.analyzer.current_symbol as Block;
+		var block = context.analyzer.get_current_block (this);
 		if (block != null) {
 			block.add_local_variable (this);
 		}

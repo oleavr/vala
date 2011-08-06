@@ -150,10 +150,6 @@ public class Vala.PropertyAccessor : Subroutine {
 			return false;
 		}
 
-		var old_symbol = context.analyzer.current_symbol;
-
-		context.analyzer.current_symbol = this;
-
 		if (writable || construction) {
 			value_parameter = new Parameter ("value", value_type, source_reference);
 		}
@@ -197,8 +193,6 @@ public class Vala.PropertyAccessor : Subroutine {
 				}
 			}
 		}
-
-		context.analyzer.current_symbol = old_symbol;
 
 		return !error;
 	}
