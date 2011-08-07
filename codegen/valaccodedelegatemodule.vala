@@ -110,7 +110,7 @@ public class Vala.CCodeDelegateModule : CCodeArrayModule {
 			var cparam = new CCodeParameter ("user_data", "void*");
 			cfundecl.add_parameter (cparam);
 		}
-		if (d.get_error_types ().size > 0) {
+		if (d.tree_can_fail) {
 			var cparam = new CCodeParameter ("error", "GError**");
 			cfundecl.add_parameter (cparam);
 		}
@@ -258,7 +258,7 @@ public class Vala.CCodeDelegateModule : CCodeArrayModule {
 			cparam_map.set (get_param_pos (-3), cparam);
 		}
 
-		if (m.get_error_types ().size > 0) {
+		if (m.tree_can_fail) {
 			var cparam = new CCodeParameter ("error", "GError**");
 			cparam_map.set (get_param_pos (-1), cparam);
 		}
@@ -382,7 +382,7 @@ public class Vala.CCodeDelegateModule : CCodeArrayModule {
 			carg_map.set (get_param_pos (-3), new CCodeIdentifier ("result"));
 		}
 
-		if (m.get_error_types ().size > 0) {
+		if (m.tree_can_fail) {
 			carg_map.set (get_param_pos (-1), new CCodeIdentifier ("error"));
 		}
 

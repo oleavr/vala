@@ -158,12 +158,14 @@ public class Vala.Block : Symbol, Statement {
 			constant.active = false;
 		}
 
+		return !error;
+	}
+
+	public override void get_error_types (Collection<DataType> collection, SourceReference? source_reference = null) {
 		// use get_statements () instead of statement_list to not miss errors within StatementList objects
 		foreach (Statement stmt in get_statements ()) {
-			add_error_types (stmt.get_error_types ());
+			stmt.get_error_types (collection, source_reference);
 		}
-
-		return !error;
 	}
 
 	public override void emit (CodeGenerator codegen) {

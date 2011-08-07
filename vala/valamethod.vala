@@ -188,6 +188,8 @@ public class Vala.Method : Subroutine, Callable {
 	private List<Expression> postconditions;
 	private DataType _return_type;
 
+	protected List<DataType> error_types;
+
 	private weak Method _base_method;
 	private weak Method _base_interface_method;
 	private DataType _base_interface_type;
@@ -272,8 +274,10 @@ public class Vala.Method : Subroutine, Callable {
 			param.accept (visitor);
 		}
 
-		foreach (DataType error_type in get_error_types ()) {
-			error_type.accept (visitor);
+		if (error_types != null) {
+			foreach (DataType error_type in error_types) {
+				error_type.accept (visitor);
+			}
 		}
 
 		if (result_var != null) {
@@ -387,18 +391,22 @@ public class Vala.Method : Subroutine, Callable {
 		}
 
 		/* this method may throw less but not more errors than the base method */
-		foreach (DataType method_error_type in get_error_types ()) {
-			bool match = false;
-			foreach (DataType base_method_error_type in base_method.get_error_types ()) {
-				if (method_error_type.compatible (base_method_error_type)) {
-					match = true;
-					break;
+		var base_method_errors = new ArrayList<DataType> ();
+		base_method.get_error_types (base_method_errors);
+		if (error_types != null) {
+			foreach (DataType method_error_type in error_types) {
+				bool match = false;
+				foreach (DataType base_method_error_type in base_method_errors) {
+					if (method_error_type.compatible (base_method_error_type)) {
+						match = true;
+						break;
+					}
 				}
-			}
 
-			if (!match) {
-				invalid_match = "incompatible error type `%s'".printf (method_error_type.to_string ());
-				return false;
+				if (!match) {
+					invalid_match = "incompatible error type `%s'".printf (method_error_type.to_string ());
+					return false;
+				}
 			}
 		}
 		if (base_method.coroutine != this.coroutine) {
@@ -509,6 +517,32 @@ public class Vala.Method : Subroutine, Callable {
 		return _empty_expression_list;
 	}
 
+	/**
+	 * Adds an error type to the exceptions that can be
+	 * thrown by this method.
+	 */
+	public void add_error_type (DataType error_type) {
+		if (error_types == null) {
+			error_types = new ArrayList<DataType> ();
+		}
+		error_types.add (error_type);
+		error_type.parent_node = this;
+	}
+
+	public override void get_error_types (Collection<DataType> collection, SourceReference? source_reference = null) {
+		if (error_types != null) {
+			foreach (var error_type in error_types) {
+				if (source_reference != null) {
+					var type = error_type.copy ();
+					type.source_reference = source_reference;
+					collection.add (type);
+				} else {
+					collection.add (error_type);
+				}
+			}
+		}
+	}
+
 	public override void replace_type (DataType old_type, DataType new_type) {
 		if (base_interface_type == old_type) {
 			base_interface_type = new_type;
@@ -518,11 +552,12 @@ public class Vala.Method : Subroutine, Callable {
 			return_type = new_type;
 			return;
 		}
-		var error_types = get_error_types ();
-		for (int i = 0; i < error_types.size; i++) {
-			if (error_types[i] == old_type) {
-				error_types[i] = new_type;
-				return;
+		if (error_types != null) {
+			for (int i = 0; i < error_types.size; i++) {
+				if (error_types[i] == old_type) {
+					error_types[i] = new_type;
+					return;
+				}
 			}
 		}
 	}
@@ -633,7 +668,7 @@ public class Vala.Method : Subroutine, Callable {
 			this_parameter.variable_type.value_owned = true;
 		}
 		if (get_attribute ("NoThrow") != null) {
-			get_error_types ().clear ();
+			error_types = null;
 		}
 
 		if (is_abstract) {
@@ -727,14 +762,16 @@ public class Vala.Method : Subroutine, Callable {
 			}
 		}
 
-		foreach (DataType error_type in get_error_types ()) {
-			error_type.check (context);
+		if (error_types != null) {
+			foreach (DataType error_type in error_types) {
+				error_type.check (context);
 
-			// check whether error type is at least as accessible as the method
-			if (!context.analyzer.is_type_accessible (this, error_type)) {
-				error = true;
-				Report.error (source_reference, "error type `%s` is less accessible than method `%s`".printf (error_type.to_string (), get_full_name ()));
-				return false;
+				// check whether error type is at least as accessible as the method
+				if (!context.analyzer.is_type_accessible (this, error_type)) {
+					error = true;
+					Report.error (source_reference, "error type `%s` is less accessible than method `%s`".printf (error_type.to_string (), get_full_name ()));
+					return false;
+				}
 			}
 		}
 
@@ -827,11 +864,15 @@ public class Vala.Method : Subroutine, Callable {
 
 		// check that all errors that can be thrown in the method body are declared
 		if (body != null) { 
-			foreach (DataType body_error_type in body.get_error_types ()) {
+			var body_errors = new ArrayList<DataType> ();
+			body.get_error_types (body_errors);
+			foreach (DataType body_error_type in body_errors) {
 				bool can_propagate_error = false;
-				foreach (DataType method_error_type in get_error_types ()) {
-					if (body_error_type.compatible (method_error_type)) {
-						can_propagate_error = true;
+				if (error_types != null) {
+					foreach (DataType method_error_type in error_types) {
+						if (body_error_type.compatible (method_error_type)) {
+							can_propagate_error = true;
+						}
 					}
 				}
 				bool is_dynamic_error = body_error_type is ErrorType && ((ErrorType) body_error_type).dynamic_error;

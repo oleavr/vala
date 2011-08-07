@@ -70,6 +70,12 @@ public class Vala.ReturnStatement : CodeNode, Statement {
 		}
 	}
 
+	public override void get_error_types (Collection<DataType> collection, SourceReference? source_reference = null) {
+		if (return_expression != null) {
+			return_expression.get_error_types (collection, source_reference);
+		}
+	}
+
 	public override bool check (CodeContext context) {
 		if (checked) {
 			return !error;
@@ -139,8 +145,6 @@ public class Vala.ReturnStatement : CodeNode, Statement {
 		    && !current_return_type.nullable) {
 			Report.warning (source_reference, "`null' incompatible with return type `%s`".printf (current_return_type.to_string ()));
 		}
-
-		add_error_types (return_expression.get_error_types ());
 
 		return !error;
 	}
