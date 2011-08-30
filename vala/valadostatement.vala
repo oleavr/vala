@@ -81,46 +81,40 @@ public class Vala.DoStatement : CodeNode, Statement {
 		visitor.visit_end_full_expression (condition);
 	}
 
-	bool always_true (Expression condition) {
-		var literal = condition as BooleanLiteral;
-		return (literal != null && literal.value);
+	public override void replace_expression (Expression old_node, Expression new_node) {
+		if (condition == old_node) {
+			condition = new_node;
+		}
 	}
 
 	public override bool check (CodeContext context) {
-		// convert to simple loop
-
-		// do not generate variable and if block if condition is always true
-		if (always_true (condition)) {
-			var loop = new Loop (body, source_reference);
-
-			var parent_block = (Block) parent_node;
-			parent_block.replace_statement (this, loop);
-
-			return loop.check (context);
+		if (checked) {
+			return !error;
 		}
 
-		var block = new Block (source_reference);
+		checked = true;
 
-		var first_local = new LocalVariable (context.analyzer.bool_type.copy (), get_temp_name (), new BooleanLiteral (true, source_reference), source_reference);
-		block.add_statement (new DeclarationStatement (first_local, source_reference));
+		condition.target_type = context.analyzer.bool_type.copy ();
 
-		var if_condition = new UnaryExpression (UnaryOperator.LOGICAL_NEGATION, condition, condition.source_reference);
-		var true_block = new Block (condition.source_reference);
-		true_block.add_statement (new BreakStatement (condition.source_reference));
-		var if_stmt = new IfStatement (if_condition, true_block, null, condition.source_reference);
+		condition.check (context);
 
-		var condition_block = new Block (condition.source_reference);
-		condition_block.add_statement (if_stmt);
+		if (condition.error) {
+			/* if there was an error in the condition, skip this check */
+			error = true;
+			return false;
+		}
 
-		var first_if = new IfStatement (new UnaryExpression (UnaryOperator.LOGICAL_NEGATION, new MemberAccess.simple (first_local.name, source_reference), source_reference), condition_block, null, source_reference);
-		body.insert_statement (0, first_if);
-		body.insert_statement (1, new ExpressionStatement (new Assignment (new MemberAccess.simple (first_local.name, source_reference), new BooleanLiteral (false, source_reference), AssignmentOperator.SIMPLE, source_reference), source_reference));
+		if (condition.value_type == null || !condition.value_type.compatible (context.analyzer.bool_type)) {
+			error = true;
+			Report.error (condition.source_reference, "Condition must be boolean");
+			return false;
+		}
 
-		block.add_statement (new Loop (body, source_reference));
+		if (!body.check (context)) {
+			error = true;
+			return false;
+		}
 
-		var parent_block = (Block) parent_node;
-		parent_block.replace_statement (this, block);
-
-		return block.check (context);
+		return !error;
 	}
 }
