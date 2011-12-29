@@ -45,8 +45,7 @@ public class Vala.GVariantTransformer : CodeTransformer {
 		{ "g", "signature", true }
 	};
 
-	Statement current_statement;
-	Block current_block;
+	CodeBuilder b;
 
 	bool get_basic_type_info (string signature, out BasicTypeInfo basic_type) {
 		foreach (BasicTypeInfo info in basic_types) {
@@ -59,22 +58,22 @@ public class Vala.GVariantTransformer : CodeTransformer {
 		return false;
 	}
 
-	MemberAccess member_access (string symbol_string, CodeNode node) {
+	MemberAccess member_access (string symbol_string) {
 		MemberAccess? ma = null;
 		bool first = true;
 		foreach (unowned string s in symbol_string.substring(1).split (".")) {
 			if (first) {
-				ma = new MemberAccess (ma, symbol_string[0].to_string()+s, node.source_reference);
+				ma = new MemberAccess (ma, symbol_string[0].to_string()+s, b.source_reference);
 				first = false;
 			} else {
-				ma = new MemberAccess (ma, s, node.source_reference);
+				ma = new MemberAccess (ma, s, b.source_reference);
 			}
 		}
 		return ma;
 	}
 
 	Expression serialize_basic (BasicTypeInfo basic_type, Expression expr) {
-		var new_call = new ObjectCreationExpression (member_access ("GLib.Variant." + basic_type.type_name, expr), expr.source_reference);
+		var new_call = new ObjectCreationExpression (member_access ("GLib.Variant." + basic_type.type_name), expr.source_reference);
 		new_call.add_argument (expr);
 		return new_call;
 	}
@@ -161,74 +160,53 @@ public class Vala.GVariantTransformer : CodeTransformer {
 	}
 
 	Expression serialize_array (ArrayType array_type, Expression array_expr) {
-		LocalVariable temp = new LocalVariable (array_type, array_expr.get_temp_name (), array_expr, array_expr.source_reference);
-		var decl = new DeclarationStatement (temp, array_expr.source_reference);
-		context.analyzer.get_insert_block (current_statement).insert_before (current_statement, decl);
-		check (decl);
+		string temp = b.add_temp_declaration (array_type, null);
 
-		LocalVariable[] indices = new LocalVariable[array_type.rank];
+		string[] indices = new string[array_type.rank];
 		for (int dim=1; dim <= array_type.rank; dim++) {
-			var index = new LocalVariable (null, array_expr.get_temp_name (), new IntegerLiteral ("0"), array_expr.source_reference);
-			decl = new DeclarationStatement (index, array_expr.source_reference);
-			context.analyzer.get_insert_block (current_statement).insert_before (current_statement, decl);
-			check (decl);
-			indices[dim-1] = index;
+			indices[dim-1] = b.add_temp_declaration (null, new IntegerLiteral ("0"));
 		}
 		return serialize_array_dim (array_type, 1, indices, temp);
 	}
 
-	Expression serialize_array_dim (ArrayType array_type, int dim, LocalVariable[] indices, LocalVariable array_var) {
-		var gvariant_type = new ObjectCreationExpression (member_access ("GLib.VariantType", array_var), array_var.source_reference);
+	Expression serialize_array_dim (ArrayType array_type, int dim, string[] indices, string array_var) {
+		var gvariant_type = new ObjectCreationExpression (member_access ("GLib.VariantType"), b.source_reference);
 		gvariant_type.add_argument (new StringLiteral ("\""+get_type_signature (array_type)+"\""));
 
-		var builderinit = new ObjectCreationExpression (member_access ("GLib.VariantBuilder", array_var), array_var.source_reference);
+		var builderinit = new ObjectCreationExpression (member_access ("GLib.VariantBuilder"), b.source_reference);
 		builderinit.add_argument (gvariant_type);
 
-		var builder = new LocalVariable (null, array_var.get_temp_name (), builderinit, array_var.source_reference);
-		var decl = new DeclarationStatement (builder, array_var.source_reference);
-		context.analyzer.get_insert_block (current_statement).insert_before (current_statement, decl);
-		check (decl);
+		var builder = b.add_temp_declaration (null, builderinit);
 
-		Expression length = member_access (array_var.name+".length", array_var);
+		Expression length = member_access (array_var+".length");
 		if (array_type.rank > 1) {
-			ElementAccess ea = new ElementAccess (length, array_var.source_reference);
-			ea.append_index (new IntegerLiteral ((dim-1).to_string (), array_var.source_reference));
+			ElementAccess ea = new ElementAccess (length, b.source_reference);
+			ea.append_index (new IntegerLiteral ((dim-1).to_string (), b.source_reference));
 			length = ea;
 		}
 
 		var index = indices[dim-1];
-		var forcond = new BinaryExpression (BinaryOperator.LESS_THAN, member_access (index.name, array_var), length, array_var.source_reference);
-		var foriter = new PostfixExpression (member_access (index.name, array_var), true, array_var.source_reference);
-		var forbody = new Block (array_var.source_reference);
-		var old_block = current_block;
-		current_block = forbody;
+		var forcond = new BinaryExpression (BinaryOperator.LESS_THAN, member_access (index), length, b.source_reference);
+		var foriter = new PostfixExpression (member_access (index), true, b.source_reference);
+		b.open_for (null, forcond, foriter);
 
 		Expression element_variant;
 		if (dim < array_type.rank) {
 			element_variant = serialize_array_dim (array_type, dim + 1, indices, array_var);
 		} else {
-			var element_expr = new ElementAccess (member_access (array_var.name, array_var), array_var.source_reference);
+			var element_expr = new ElementAccess (member_access (array_var), b.source_reference);
 			for (int i=0; i < dim; i++) {
-				element_expr.append_index (member_access (indices[i].name, array_var));
+				element_expr.append_index (member_access (indices[i]));
 			}
 			element_variant = serialize_expression (array_type.element_type, element_expr);
 		}
-		current_block = old_block;
 
-		var builder_add = new MethodCall (member_access (builder.name+".add_value", array_var), array_var.source_reference);
+		var builder_add = new MethodCall (member_access (builder+".add_value"), b.source_reference);
 		builder_add.add_argument (element_variant);
-		forbody.add_statement (new ExpressionStatement (builder_add, array_var.source_reference));
+		b.add_expression (builder_add);
+		b.close ();
 
-		var forstmt = new ForStatement (forcond, forbody, array_var.source_reference);
-		forstmt.add_iterator (foriter);
-		if (dim == 1) {
-			context.analyzer.get_current_block (current_statement).insert_before (current_statement, forstmt);
-			check (forstmt);
-		} else {
-			current_block.add_statement (forstmt);
-		}
-
-		var builder_end = new MethodCall (member_access (builder.name+".end", array_var), array_var.source_reference);
+		var builder_end = new MethodCall (member_access (builder+".end"), b.source_reference);
 		return builder_end;
 	}
 
@@ -251,22 +229,18 @@ public class Vala.GVariantTransformer : CodeTransformer {
 			return;
 		}
 
-		current_statement = get_current_statement (expr);
+		b = new CodeBuilder (context, expr.parent_statement, expr.source_reference);
 		var old_parent_node = expr.parent_node;
 		var target_type = expr.target_type.copy ();
 
-		current_block = context.analyzer.get_current_block (current_statement);
 		Expression result = serialize_expression (expr.value_type, expr);
 
 		result.target_type = target_type;
+		context.analyzer.replaced_nodes.add (expr);
 		old_parent_node.replace_expression (expr, result);
-		check (result);
-	}
-
-	Statement get_current_statement (CodeNode node) {
-		while (!(node is Statement)) {
-			node = node.parent_node;
+		foreach (var node in b.check_nodes) {
+			check (node);
 		}
-		return (Statement) node;
+		check (result);
 	}
 }

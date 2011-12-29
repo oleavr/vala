@@ -51,7 +51,7 @@ public class Vala.DeleteStatement : CodeNode, Statement {
 	}
 
 	public override void replace_expression (Expression old_node, Expression new_node) {
-		if (expression = old_node) {
+		if (expression == old_node) {
 			expression = new_node;
 		}
 	}
