@@ -244,6 +244,8 @@ public class Vala.GVariantTransformer : CodeTransformer {
 	}
 
 	public override void visit_expression (Expression expr) {
+		base.visit_expression (expr);
+
 		if (!(context.profile == Profile.GOBJECT && expr.target_type != null && expr.target_type.data_type == context.analyzer.gvariant_type.data_type && !(expr.value_type is NullType) && expr.value_type.data_type != context.analyzer.gvariant_type.data_type)) {
 			// no implicit gvariant boxing
 			return;

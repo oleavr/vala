@@ -85,11 +85,9 @@ public class Vala.ConditionalExpression : Expression {
 	}
 	
 	public override void accept (CodeVisitor visitor) {
-		// FIXME: temporary workaround to keep alive the object
-		var self = this;
-		visitor.visit_conditional_expression (self);
+		visitor.visit_conditional_expression (this);
 
-		visitor.visit_expression (self);
+		visitor.visit_expression (this);
 	}
 
 	public override void accept_children (CodeVisitor visitor) {
@@ -122,6 +120,18 @@ public class Vala.ConditionalExpression : Expression {
 		condition.get_used_variables (collection);
 		true_expression.get_used_variables (collection);
 		false_expression.get_used_variables (collection);
+	}
+
+	public override void replace_expression (Expression old_node, Expression new_node) {
+		if (condition == old_node) {
+			condition = new_node;
+		}
+		if (true_expression == old_node) {
+			true_expression = new_node;
+		}
+		if (false_expression == old_node) {
+			false_expression = new_node;
+		}
 	}
 
 	public override bool check (CodeContext context) {
