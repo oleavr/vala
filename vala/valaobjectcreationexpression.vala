@@ -41,11 +41,13 @@ public class Vala.ObjectCreationExpression : Expression {
 	 * The construction method to use or the data type to be created
 	 * with the default construction method.
 	 */
-	public MemberAccess member_name {
+	public MemberAccess? member_name {
 		get { return _member_name; }
 		set {
 			_member_name = value;
-			_member_name.parent_node = this;
+			if (_member_name != null) {
+				_member_name.parent_node = this;
+			}
 		}
 	}
 
@@ -58,7 +60,7 @@ public class Vala.ObjectCreationExpression : Expression {
 	private List<MemberInitializer> object_initializer = new ArrayList<MemberInitializer> ();
 
 	private DataType _data_type;
-	private MemberAccess _member_name;
+	private MemberAccess? _member_name;
 
 	/**
 	 * Creates a new object creation expression.
@@ -67,7 +69,7 @@ public class Vala.ObjectCreationExpression : Expression {
 	 * @param source_reference reference to source code
 	 * @return                 newly created object creation expression
 	 */
-	public ObjectCreationExpression (MemberAccess member_name, SourceReference source_reference) {
+	public ObjectCreationExpression (MemberAccess? member_name, SourceReference? source_reference = null) {
 		this.source_reference = source_reference;
 		this.member_name = member_name;
 	}
