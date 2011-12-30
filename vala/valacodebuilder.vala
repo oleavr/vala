@@ -38,6 +38,8 @@ public class Vala.CodeBuilder {
 
 		var statement_block = context.analyzer.get_current_block (insert_statement);
 		statement_block.insert_before (insert_statement, current_block);
+		this.insert_statement = current_block;
+
 		check_nodes.add (current_block);
 	}
 
