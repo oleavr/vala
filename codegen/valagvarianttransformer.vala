@@ -58,22 +58,12 @@ public class Vala.GVariantTransformer : CodeTransformer {
 		return false;
 	}
 
-	MemberAccess member_access (string symbol_string) {
-		MemberAccess? ma = null;
-		bool first = true;
-		foreach (unowned string s in symbol_string.substring(1).split (".")) {
-			if (first) {
-				ma = new MemberAccess (ma, symbol_string[0].to_string()+s, b.source_reference);
-				first = false;
-			} else {
-				ma = new MemberAccess (ma, s, b.source_reference);
-			}
-		}
-		return ma;
+	Expression expression (string str) {
+		return new Parser().parse_expression_string (str, b.source_reference);
 	}
 
 	Expression serialize_basic (BasicTypeInfo basic_type, Expression expr) {
-		var new_call = new ObjectCreationExpression (member_access ("GLib.Variant." + basic_type.type_name), expr.source_reference);
+		var new_call = (ObjectCreationExpression) expression (@"new GLib.Variant.$(basic_type.type_name)()");
 		new_call.add_argument (expr);
 		return new_call;
 	}
@@ -170,15 +160,11 @@ public class Vala.GVariantTransformer : CodeTransformer {
 	}
 
 	Expression serialize_array_dim (ArrayType array_type, int dim, string[] indices, string array_var) {
-		var gvariant_type = new ObjectCreationExpression (member_access ("GLib.VariantType"), b.source_reference);
-		gvariant_type.add_argument (new StringLiteral ("\""+get_type_signature (array_type)+"\""));
-
-		var builderinit = new ObjectCreationExpression (member_access ("GLib.VariantBuilder"), b.source_reference);
-		builderinit.add_argument (gvariant_type);
+		var builderinit = expression (@"new GLib.VariantBuilder (new GLib.VariantType (\"$(get_type_signature (array_type))\"))");
 
 		var builder = b.add_temp_declaration (null, builderinit);
 
-		Expression length = member_access (array_var+".length");
+		Expression length = expression (array_var+".length");
 		if (array_type.rank > 1) {
 			ElementAccess ea = new ElementAccess (length, b.source_reference);
 			ea.append_index (new IntegerLiteral ((dim-1).to_string (), b.source_reference));
@@ -186,27 +172,27 @@ public class Vala.GVariantTransformer : CodeTransformer {
 		}
 
 		var index = indices[dim-1];
-		var forcond = new BinaryExpression (BinaryOperator.LESS_THAN, member_access (index), length, b.source_reference);
-		var foriter = new PostfixExpression (member_access (index), true, b.source_reference);
+		var forcond = new BinaryExpression (BinaryOperator.LESS_THAN, expression (index), length, b.source_reference);
+		var foriter = new PostfixExpression (expression (index), true, b.source_reference);
 		b.open_for (null, forcond, foriter);
 
 		Expression element_variant;
 		if (dim < array_type.rank) {
 			element_variant = serialize_array_dim (array_type, dim + 1, indices, array_var);
 		} else {
-			var element_expr = new ElementAccess (member_access (array_var), b.source_reference);
+			var element_expr = new ElementAccess (expression (array_var), b.source_reference);
 			for (int i=0; i < dim; i++) {
-				element_expr.append_index (member_access (indices[i]));
+				element_expr.append_index (expression (indices[i]));
 			}
 			element_variant = serialize_expression (array_type.element_type, element_expr);
 		}
 
-		var builder_add = new MethodCall (member_access (builder+".add_value"), b.source_reference);
+		var builder_add = new MethodCall (expression (builder+".add_value"), b.source_reference);
 		builder_add.add_argument (element_variant);
 		b.add_expression (builder_add);
 		b.close ();
 
-		var builder_end = new MethodCall (member_access (builder+".end"), b.source_reference);
+		var builder_end = new MethodCall (expression (builder+".end"), b.source_reference);
 		return builder_end;
 	}
 
