@@ -43,7 +43,7 @@ public class Vala.SymbolResolver : CodeVisitor {
 
 		context.root.accept (this);
 	}
-	
+
 	public override void visit_namespace (Namespace ns) {
 		var old_scope = current_scope;
 		current_scope = ns.scope;
