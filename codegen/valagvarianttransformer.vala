@@ -414,7 +414,7 @@ public class Vala.GVariantTransformer : CodeTransformer {
 		en.add_method (m);
 		m.binding = MemberBinding.STATIC;
 		m.access = SymbolAccessibility.PUBLIC;
-		b = new CodeBuilder.for_method (m);
+		b = new CodeBuilder.for_subroutine (m);
 
 		b.open_switch (expression ("str"), null);
 		b.add_throw (expression ("new GLib.DBusError.INVALID_ARGS (\"Invalid value for enum `%s'\")".printf (CCodeBaseModule.get_ccode_name (en))));
@@ -435,7 +435,7 @@ public class Vala.GVariantTransformer : CodeTransformer {
 		var m = new Method ("to_string", data_type ("string", false, true), en.source_reference);
 		en.add_method (m);
 		m.access = SymbolAccessibility.PUBLIC;
-		b = new CodeBuilder.for_method (m);
+		b = new CodeBuilder.for_subroutine (m);
 
 		b.open_switch (expression ("this"), null);
 		b.add_return (expression ("null"));
