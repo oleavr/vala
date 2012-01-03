@@ -162,7 +162,7 @@ public class Vala.CodeBuilder {
 		add_statement (new ContinueStatement (source_reference));
 	}
 
-	public string add_temp_declaration (DataType? type, Expression? initializer) {
+	public string add_temp_declaration (DataType? type, Expression? initializer = null) {
 		var local = new LocalVariable (type, CodeNode.get_temp_name (), initializer, source_reference);
 		var stmt = new DeclarationStatement (local, source_reference);
 		build_context.insert_block.insert_before (build_context.insert_statement, stmt);
