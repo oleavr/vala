@@ -123,7 +123,7 @@ public class Vala.ConditionalExpression : Expression {
 	}
 
 	public override string to_string () {
-		return "%s ? %s : %s".printf (condition.to_string, true_expression.to_string (), false_expression.to_string ());
+		return "%s ? %s : %s".printf (condition.to_string (), true_expression.to_string (), false_expression.to_string ());
 	}
 
 	public override void replace_expression (Expression old_node, Expression new_node) {
