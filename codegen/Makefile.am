@@ -36,6 +36,7 @@ libvalaccodegen_la_VALASOURCES = \
 	valagdbusclienttransformer.vala \
 	valagdbusmodule.vala \
 	valagdbusservermodule.vala \
+	valagdbusservertransformer.vala \
 	valagerrormodule.vala \
 	valagirwriter.vala \
 	valagobjectmodule.vala \
