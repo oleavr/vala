@@ -659,7 +659,7 @@ public class Vala.FlowAnalyzer : CodeVisitor {
 		foreach (SwitchSection section in stmt.get_sections ()) {
 			current_block = new BasicBlock ();
 			condition_block.connect (current_block);
-			foreach (Statement section_stmt in section.get_statements ()) {
+			foreach (Statement section_stmt in section) {
 				section_stmt.accept (this);
 			}
 

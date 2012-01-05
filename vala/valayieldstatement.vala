@@ -23,7 +23,7 @@
 /**
  * Represents a yield statement in the source code.
  */
-public class Vala.YieldStatement : CodeNode, Statement {
+public class Vala.YieldStatement : BaseStatement {
 	/**
 	 * The expression to yield or the method call to yield to.
 	 */

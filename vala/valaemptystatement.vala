@@ -25,7 +25,7 @@ using GLib;
 /**
  * An empty statement.
  */
-public class Vala.EmptyStatement : CodeNode, Statement {
+public class Vala.EmptyStatement : BaseStatement {
 	/**
 	 * Creates a new empty statement.
 	 *
