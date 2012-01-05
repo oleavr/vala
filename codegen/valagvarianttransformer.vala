@@ -500,8 +500,6 @@ public class Vala.GVariantTransformer : CCodeTransformer {
 		}
 
 		push_builder (new CodeBuilder (context, expr.parent_statement, expr.source_reference));
-		var old_parent_node = expr.parent_node;
-		var target_type = expr.target_type.copy ();
 		var type = expr.value_type;
 
 		BasicTypeInfo basic_type;
@@ -524,12 +522,12 @@ public class Vala.GVariantTransformer : CCodeTransformer {
 			}
 		}
 
-		result.target_type = target_type;
-		context.analyzer.replaced_nodes.add (expr);
-		old_parent_node.replace_expression (expr, result);
+		context.analyzer.replaced_nodes.add (expr.inner);
+		expr.inner = result;
 		b.check (this);
 		pop_builder ();
-		check (result);
+		expr.checked = false;
+		check (expr);
 	}
 
 	public override void visit_expression (Expression expr) {
