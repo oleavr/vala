@@ -107,12 +107,21 @@ public class Vala.Block : Symbol, Statement {
 	}
 
 	/**
-	 * Returns a copy of the list of local variables.
+	 * Returns the list of local variables.
 	 *
 	 * @return variable declarator list
 	 */
 	public List<LocalVariable> get_local_variables () {
 		return local_variables;
+	}
+
+	/**
+	 * Returns the list of local constants.
+	 *
+	 * @return variable declarator list
+	 */
+	public List<Constant> get_local_constants () {
+		return local_constants;
 	}
 
 	public void add_local_constant (Constant constant) {
