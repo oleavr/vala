@@ -1,6 +1,6 @@
 /* valacodebuilder.vala
  *
- * Copyright (C) 2011  Luca Bruno
+ * Copyright (C) 2012  Luca Bruno
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
