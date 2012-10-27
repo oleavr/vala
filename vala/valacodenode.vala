@@ -344,7 +344,78 @@ public abstract class Vala.CodeNode {
 		return str.append (" */").str;
 	}
 
-	public virtual void get_defined_variables (Collection<Variable> collection) {
+	public void get_defined_variables (Collection<Variable> collection) {
+		var traverse = new TraverseVisitor ((n) => {
+				if (n is Assignment) {
+					var a = (Assignment) n;
+					var local = a.left.symbol_reference as LocalVariable;
+					var param = a.left.symbol_reference as Parameter;
+					if (local != null) {
+						collection.add (local);
+					} else if (param != null && param.direction == ParameterDirection.OUT) {
+						collection.add (param);
+					}
+				} else if (n is CatchClause) {
+					var clause = (CatchClause) n;
+					if (clause.error_variable != null) {
+						collection.add (clause.error_variable);
+					}
+					return TraverseStatus.STOP;
+				} else if (n is DeclarationStatement) {
+					var stmt = (DeclarationStatement) n;
+					var local = stmt.declaration as LocalVariable;
+					if (local != null) {
+						var array_type = local.variable_type as ArrayType;
+						if (local.initializer != null || (array_type != null && array_type.fixed_length)) {
+							collection.add (local);
+						}
+					}
+				} else if (n is ForeachStatement) {
+					var stmt = (ForeachStatement) n;
+					collection.add (stmt.element_variable);
+					return TraverseStatus.STOP;
+				} else if (n is Method) {
+					var m = (Method) n;
+					// capturing variables is only supported if they are initialized
+					// therefore assume that captured variables are initialized
+					if (m.closure) {
+						m.get_captured_variables ((Collection<LocalVariable>) collection);
+					}
+					return TraverseStatus.STOP;
+				} else if (n is PostfixExpression) {
+					var expr = (PostfixExpression) n;
+					var local = expr.inner.symbol_reference as LocalVariable;
+					var param = expr.inner.symbol_reference as Parameter;
+					if (local != null) {
+						collection.add (local);
+					} else if (param != null && param.direction == ParameterDirection.OUT) {
+						collection.add (param);
+					}
+				} else if (n is ReferenceTransferExpression) {
+					var expr = (ReferenceTransferExpression) n;
+					var local = expr.inner.symbol_reference as LocalVariable;
+					var param = expr.inner.symbol_reference as Parameter;
+					if (local != null) {
+						collection.add (local);
+					} else if (param != null && param.direction == ParameterDirection.OUT) {
+						collection.add (param);
+					}
+				} else if (n is UnaryExpression) {
+					var expr = (UnaryExpression) n;
+					if (expr.operator == UnaryOperator.OUT || expr.operator == UnaryOperator.REF) {
+						var local = expr.inner.symbol_reference as LocalVariable;
+						var param = expr.inner.symbol_reference as Parameter;
+						if (local != null) {
+							collection.add (local);
+						}
+						if (param != null && param.direction == ParameterDirection.OUT) {
+							collection.add (param);
+						}
+					}
+				}
+				return TraverseStatus.CONTINUE;
+			});
+		accept (traverse);
 	}
 
 	public virtual void get_used_variables (Collection<Variable> collection) {

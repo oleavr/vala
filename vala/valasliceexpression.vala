@@ -183,12 +183,6 @@ public class Vala.SliceExpression : Expression {
 		codegen.visit_expression (this);
 	}
 
-	public override void get_defined_variables (Collection<Variable> collection) {
-		container.get_defined_variables (collection);
-		start.get_defined_variables (collection);
-		stop.get_defined_variables (collection);
-	}
-
 	public override void get_used_variables (Collection<Variable> collection) {
 		container.get_used_variables (collection);
 		start.get_used_variables (collection);

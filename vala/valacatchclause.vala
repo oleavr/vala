@@ -147,10 +147,4 @@ public class Vala.CatchClause : CodeNode {
 
 		codegen.visit_catch_clause (this);
 	}
-
-	public override void get_defined_variables (Collection<Variable> collection) {
-		if (error_variable != null) {
-			collection.add (error_variable);
-		}
-	}
 }

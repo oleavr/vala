@@ -110,12 +110,6 @@ public class Vala.ConditionalExpression : Expression {
 		false_expression.get_error_types (collection, source_reference);
 	}
 
-	public override void get_defined_variables (Collection<Variable> collection) {
-		condition.get_defined_variables (collection);
-		true_expression.get_defined_variables (collection);
-		false_expression.get_defined_variables (collection);
-	}
-
 	public override void get_used_variables (Collection<Variable> collection) {
 		condition.get_used_variables (collection);
 		true_expression.get_used_variables (collection);

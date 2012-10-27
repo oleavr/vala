@@ -252,13 +252,6 @@ public class Vala.ElementAccess : Expression {
 		codegen.visit_expression (this);
 	}
 
-	public override void get_defined_variables (Collection<Variable> collection) {
-		container.get_defined_variables (collection);
-		foreach (Expression index in indices) {
-			index.get_defined_variables (collection);
-		}
-	}
-
 	public override void get_used_variables (Collection<Variable> collection) {
 		container.get_used_variables (collection);
 		foreach (Expression index in indices) {

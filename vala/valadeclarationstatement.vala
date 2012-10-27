@@ -88,19 +88,6 @@ public class Vala.DeclarationStatement : BaseStatement {
 		codegen.visit_declaration_statement (this);
 	}
 
-	public override void get_defined_variables (Collection<Variable> collection) {
-		var local = declaration as LocalVariable;
-		if (local != null) {
-			var array_type = local.variable_type as ArrayType;
-			if (local.initializer != null) {
-				local.initializer.get_defined_variables (collection);
-				collection.add (local);
-			} else if (array_type != null && array_type.fixed_length) {
-				collection.add (local);
-			}
-		}
-	}
-
 	public override void get_used_variables (Collection<Variable> collection) {
 		var local = declaration as LocalVariable;
 		if (local != null && local.initializer != null) {

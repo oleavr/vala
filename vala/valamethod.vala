@@ -1093,14 +1093,6 @@ public class Vala.Method : Subroutine, Callable {
 		}
 	}
 
-	public override void get_defined_variables (Collection<Variable> collection) {
-		// capturing variables is only supported if they are initialized
-		// therefore assume that captured variables are initialized
-		if (closure) {
-			get_captured_variables ((Collection<LocalVariable>) collection);
-		}
-	}
-
 	public int get_format_arg_index () {
 		for (int i = 0; i < parameters.size; i++) {
 			if (parameters[i].format_arg) {

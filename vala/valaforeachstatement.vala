@@ -329,10 +329,6 @@ public class Vala.ForeachStatement : BaseStatement {
 
 		codegen.visit_foreach_statement (this);
 	}
-
-	public override void get_defined_variables (Collection<Variable> collection) {
-		collection.add (element_variable);
-	}
 }
 
 public enum Vala.ForeachIteration {
