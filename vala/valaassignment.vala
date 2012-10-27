@@ -574,17 +574,6 @@ public class Vala.Assignment : Expression {
 
 		codegen.visit_expression (this);
 	}
-
-	public override void get_used_variables (Collection<Variable> collection) {
-		var ma = left as MemberAccess;
-		var ea = left as ElementAccess;
-		if (ma != null && ma.inner != null) {
-			ma.inner.get_used_variables (collection);
-		} else if (ea != null) {
-			ea.get_used_variables (collection);
-		}
-		right.get_used_variables (collection);
-	}
 }
 	
 public enum Vala.AssignmentOperator {

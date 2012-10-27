@@ -347,14 +347,16 @@ public abstract class Vala.CodeNode {
 	public void get_defined_variables (Collection<Variable> collection) {
 		var traverse = new TraverseVisitor ((n) => {
 				if (n is Assignment) {
-					var a = (Assignment) n;
-					var local = a.left.symbol_reference as LocalVariable;
-					var param = a.left.symbol_reference as Parameter;
+					var expr = (Assignment) n;
+					var local = expr.left.symbol_reference as LocalVariable;
+					var param = expr.left.symbol_reference as Parameter;
 					if (local != null) {
 						collection.add (local);
 					} else if (param != null && param.direction == ParameterDirection.OUT) {
 						collection.add (param);
 					}
+				} else if (n is Block) {
+					return TraverseStatus.STOP;
 				} else if (n is CatchClause) {
 					var clause = (CatchClause) n;
 					if (clause.error_variable != null) {
@@ -418,7 +420,56 @@ public abstract class Vala.CodeNode {
 		accept (traverse);
 	}
 
-	public virtual void get_used_variables (Collection<Variable> collection) {
+	public void get_used_variables (Collection<Variable> collection) {
+		TraverseVisitor traverse = null;
+		traverse = new TraverseVisitor ((n) => {
+				if (n is Assignment) {
+					var expr = (Assignment) n;
+					var ma = expr.left as MemberAccess;
+					var ea = expr.left as ElementAccess;
+					if (ma != null && ma.inner != null) {
+						ma.inner.accept (traverse);
+					} else if (ea != null) {
+						ea.accept (traverse);
+					}
+					expr.right.accept (traverse);
+					return TraverseStatus.STOP;
+				} else if (n is Block) {
+					return TraverseStatus.STOP;
+				} else if (n is MemberAccess) {
+					var expr = (MemberAccess) n;
+					var local = expr.symbol_reference as LocalVariable;
+					var param = expr.symbol_reference as Parameter;
+					if (local != null) {
+						collection.add (local);
+					} else if (param != null && param.direction == ParameterDirection.OUT) {
+						collection.add (param);
+					}
+				} else if (n is LambdaExpression) {
+					var expr = (LambdaExpression) n;
+					// require captured variables to be initialized
+					if (expr.method.closure) {
+						expr.method.get_captured_variables ((Collection<LocalVariable>) collection);
+					}
+					return TraverseStatus.STOP;
+				} else if (n is ReferenceTransferExpression) {
+					var expr = (ReferenceTransferExpression) n;
+					var local = expr.inner.symbol_reference as LocalVariable;
+					var param = expr.inner.symbol_reference as Parameter;
+					if (local != null) {
+						collection.add (local);
+					} else if (param != null && param.direction == ParameterDirection.OUT) {
+						collection.add (param);
+					}
+				} else if (n is UnaryExpression) {
+					var expr = (UnaryExpression) n;
+					if (expr.operator == UnaryOperator.OUT) {
+						return TraverseStatus.STOP;
+					}
+				}
+				return TraverseStatus.CONTINUE;
+			});
+		accept (traverse);
 	}
 
 	public virtual void get_error_types (Collection<DataType> collection, SourceReference? source_reference = null) {

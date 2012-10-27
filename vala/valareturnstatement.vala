@@ -158,10 +158,4 @@ public class Vala.ReturnStatement : BaseStatement {
 
 		codegen.visit_return_statement (this);
 	}
-
-	public override void get_used_variables (Collection<Variable> collection) {
-		if (return_expression != null) {
-			return_expression.get_used_variables (collection);
-		}
-	}
 }

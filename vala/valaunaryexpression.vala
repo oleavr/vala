@@ -253,12 +253,6 @@ public class Vala.UnaryExpression : Expression {
 
 		codegen.visit_expression (this);
 	}
-
-	public override void get_used_variables (Collection<Variable> collection) {
-		if (operator != UnaryOperator.OUT) {
-			inner.get_used_variables (collection);
-		}
-	}
 }
 
 public enum Vala.UnaryOperator {

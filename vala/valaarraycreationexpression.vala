@@ -290,14 +290,4 @@ public class Vala.ArrayCreationExpression : Expression {
 
 		codegen.visit_expression (this);
 	}
-
-	public override void get_used_variables (Collection<Variable> collection) {
-		foreach (Expression e in sizes) {
-			e.get_used_variables (collection);
-		}
-
-		if (initializer_list != null) {
-			initializer_list.get_used_variables (collection);
-		}
-	}
 }

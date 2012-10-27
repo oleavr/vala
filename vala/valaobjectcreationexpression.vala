@@ -502,14 +502,4 @@ public class Vala.ObjectCreationExpression : Expression {
 
 		codegen.visit_expression (this);
 	}
-
-	public override void get_used_variables (Collection<Variable> collection) {
-		foreach (Expression arg in argument_list) {
-			arg.get_used_variables (collection);
-		}
-
-		foreach (MemberInitializer init in object_initializer) {
-			init.get_used_variables (collection);
-		}
-	}
 }

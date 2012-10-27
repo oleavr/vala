@@ -122,8 +122,4 @@ public class Vala.ThrowStatement : BaseStatement {
 
 		codegen.visit_throw_statement (this);
 	}
-
-	public override void get_used_variables (Collection<Variable> collection) {
-		error_expression.get_used_variables (collection);
-	}
 }

@@ -623,14 +623,6 @@ public class Vala.MethodCall : Expression {
 		codegen.visit_expression (this);
 	}
 
-	public override void get_used_variables (Collection<Variable> collection) {
-		call.get_used_variables (collection);
-
-		foreach (Expression arg in argument_list) {
-			arg.get_used_variables (collection);
-		}
-	}
-
 	public StringLiteral? get_format_literal () {
 		var mtype = this.call.value_type as MethodType;
 		if (mtype != null) {

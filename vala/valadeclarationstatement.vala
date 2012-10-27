@@ -87,11 +87,4 @@ public class Vala.DeclarationStatement : BaseStatement {
 	public override void emit (CodeGenerator codegen) {
 		codegen.visit_declaration_statement (this);
 	}
-
-	public override void get_used_variables (Collection<Variable> collection) {
-		var local = declaration as LocalVariable;
-		if (local != null && local.initializer != null) {
-			local.initializer.get_used_variables (collection);
-		}
-	}
 }
