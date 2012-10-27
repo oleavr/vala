@@ -288,12 +288,6 @@ public class Vala.TraverseVisitor : CodeVisitor {
 		}
 	}
 
-	public override void visit_expression (Expression expr) {
-		if (func (expr) == TraverseStatus.CONTINUE) {
-			expr.accept_children (this);
-		}
-	}
-
 	public override void visit_method_call (MethodCall expr) {
 		if (func (expr) == TraverseStatus.CONTINUE) {
 			expr.accept_children (this);
