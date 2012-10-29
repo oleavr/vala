@@ -184,8 +184,6 @@ public class Vala.Property : Symbol, Lockable {
 		}
 	}
 
-	private Expression _initializer;
-
 	private bool lock_used = false;
 
 	private DataType _data_type;
@@ -195,6 +193,7 @@ public class Vala.Property : Symbol, Lockable {
 	private bool base_properties_valid;
 	PropertyAccessor? _get_accessor;
 	PropertyAccessor? _set_accessor;
+	Expression _initializer;
 	private string? _nick;
 	private string? _blurb;
 	private bool? _notify;
