@@ -128,18 +128,22 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 		file.check (context);
 	}
 
-	public unowned Symbol get_current_symbol (CodeNode node) {
-		while (!(node is Symbol) || is_local_symbol ((Symbol) node)) {
+	public unowned Symbol? get_current_symbol (CodeNode node) {
+		while (node != null && !(node is Symbol)) {
+			node = node.parent_node;
+		}
+		return (Symbol) node;
+	}
+
+	public unowned Symbol? get_current_non_local_symbol (CodeNode node) {
+		while (node != null && (!(node is Symbol) || is_local_symbol ((Symbol) node))) {
 			node = node.parent_node;
 		}
 		return (Symbol) node;
 	}
 
 	public bool is_local_symbol (Symbol sym) {
-		if (sym is LocalVariable) {
-			return true;
-		}
-		if (sym is Constant && sym.parent_symbol is Block) {
+		if ((sym is LocalVariable || sym is Constant) && sym.parent_symbol is Block) {
 			return true;
 		}
 		return false;
@@ -164,7 +168,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 
 	public unowned Method? get_current_method (CodeNode node) {
 		unowned Symbol sym = get_current_symbol (node);
-		while (sym is Block) {
+		while (sym != null && !(sym is Method)) {
 			sym = sym.parent_symbol;
 		}
 		return sym as Method;
@@ -180,7 +184,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 
 	public unowned PropertyAccessor? get_current_property_accessor (CodeNode node) {
 		unowned Symbol sym = get_current_symbol (node);
-		while (sym is Block) {
+		while (sym != null && !(sym is PropertyAccessor)) {
 			sym = sym.parent_symbol;
 		}
 		return sym as PropertyAccessor;
@@ -188,7 +192,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 
 	public unowned Symbol? get_current_method_or_property_accessor (CodeNode node) {
 		unowned Symbol sym = get_current_symbol (node);
-		while (sym is Block) {
+		while (sym != null && !(sym is Method) && !(sym is PropertyAccessor)) {
 			sym = sym.parent_symbol;
 		}
 		if (sym is Method) {
@@ -223,7 +227,10 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 	}
 
 	public unowned Block? get_current_block (CodeNode node) {
-		return get_current_symbol (node) as Block;
+		while (node != null && !(node is Block)) {
+			node = node.parent_node;
+		}
+		return (Block) node;
 	}
 
 	// check whether type is at least as accessible as the specified symbol

@@ -79,6 +79,16 @@ public class Vala.LocalVariable : Variable {
 
 		checked = true;
 
+		// current_symbol is a Method if this is the `result'
+		// variable used for postconditions
+		var block = context.analyzer.get_current_block (this);
+		if (block != null) {
+			/* so that we can use parent_symbol */
+			block.add_local_variable (this);
+		}
+
+		active = false;
+
 		if (variable_type != null) {
 			if (variable_type is VoidType) {
 				error = true;
@@ -187,13 +197,6 @@ public class Vala.LocalVariable : Variable {
 					return false;
 				}
 			}
-		}
-
-		// current_symbol is a Method if this is the `result'
-		// variable used for postconditions
-		var block = context.analyzer.get_current_block (this);
-		if (block != null) {
-			block.add_local_variable (this);
 		}
 
 		active = true;

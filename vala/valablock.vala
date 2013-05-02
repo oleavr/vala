@@ -154,7 +154,7 @@ public class Vala.Block : Symbol, Statement {
 
 		checked = true;
 
-		owner = context.analyzer.get_current_symbol (parent_node).scope;
+		owner = context.analyzer.get_current_non_local_symbol (parent_node).scope;
 
 		foreach (var stmt in this) {
 			stmt.check (context);

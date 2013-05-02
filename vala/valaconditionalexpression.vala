@@ -133,7 +133,7 @@ public class Vala.ConditionalExpression : Expression {
 
 		checked = true;
 
-		if (!(context.analyzer.get_current_symbol (this) is Block)) {
+		if (!(context.analyzer.get_current_non_local_symbol (this) is Block)) {
 			Report.error (source_reference, "Conditional expressions may only be used in blocks");
 			error = true;
 			return false;

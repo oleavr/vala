@@ -165,7 +165,7 @@ public class Vala.LambdaExpression : Expression {
 				sym = sym.parent_symbol;
 			}
 		}
-		method.owner = context.analyzer.get_current_symbol (this).scope;
+		method.owner = context.analyzer.get_current_non_local_symbol (this).scope;
 
 		var lambda_params = get_parameters ();
 		Iterator<Parameter> lambda_param_it = lambda_params.iterator ();

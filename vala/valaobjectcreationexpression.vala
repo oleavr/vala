@@ -293,7 +293,7 @@ public class Vala.ObjectCreationExpression : Expression {
 			if (symbol_reference != null
 			    && (symbol_reference.access == SymbolAccessibility.PRIVATE || symbol_reference.access == SymbolAccessibility.PROTECTED)) {
 				bool in_target_type = false;
-				for (Symbol this_symbol = context.analyzer.get_current_symbol (this); this_symbol != null; this_symbol = this_symbol.parent_symbol) {
+				for (Symbol this_symbol = context.analyzer.get_current_non_local_symbol (this); this_symbol != null; this_symbol = this_symbol.parent_symbol) {
 					if (this_symbol == cl) {
 						in_target_type = true;
 						break;

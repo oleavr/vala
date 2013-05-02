@@ -363,7 +363,7 @@ public class Vala.CCodeTransformer : CodeTransformer {
 		if (expr.tree_can_fail) {
 			if (expr.parent_node is LocalVariable || expr.parent_node is ExpressionStatement) {
 				// simple statements, no side effects after method call
-			} else if (!(context.analyzer.get_current_symbol (expr) is Block)) {
+			} else if (!(context.analyzer.get_current_non_local_symbol (expr) is Block)) {
 				// can't handle errors in field initializers
 				Report.error (expr.source_reference, "Field initializers must not throw errors");
 			} else {
@@ -424,7 +424,7 @@ public class Vala.CCodeTransformer : CodeTransformer {
 		var target_type = expr.target_type != null ? expr.target_type.copy () : null;
 		push_builder (new CodeBuilder (context, parent_statement, expr.source_reference));
 
-		if (context.analyzer.get_current_symbol (expr) is Block
+		if (context.analyzer.get_current_non_local_symbol (expr) is Block
 		    && (expr.operator == BinaryOperator.AND || expr.operator == BinaryOperator.OR)) {
 			var is_and = expr.operator == BinaryOperator.AND;
 			var result = b.add_temp_declaration (data_type ("bool"));
@@ -499,7 +499,7 @@ public class Vala.CCodeTransformer : CodeTransformer {
 		if (expr.tree_can_fail) {
 			if (expr.parent_node is LocalVariable || expr.parent_node is ExpressionStatement) {
 				// simple statements, no side effects after method call
-			} else if (!(context.analyzer.get_current_symbol (expr) is Block)) {
+			} else if (!(context.analyzer.get_current_non_local_symbol (expr) is Block)) {
 				// can't handle errors in field initializers
 				Report.error (expr.source_reference, "Field initializers must not throw errors");
 			} else {

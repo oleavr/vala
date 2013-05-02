@@ -233,7 +233,7 @@ public class Vala.MemberAccess : Expression {
 				}
 			}
 
-			base_symbol = context.analyzer.get_current_symbol (this);
+			base_symbol = context.analyzer.get_current_non_local_symbol (this);
 
 			// track whether method has been found to make sure that access
 			// to instance member is denied from within static lambda expressions
@@ -709,7 +709,7 @@ public class Vala.MemberAccess : Expression {
 			var target_type = (TypeSymbol) member.parent_symbol;
 
 			bool in_subtype = false;
-			for (Symbol this_symbol = context.analyzer.get_current_symbol (this); this_symbol != null; this_symbol = this_symbol.parent_symbol) {
+			for (Symbol this_symbol = context.analyzer.get_current_non_local_symbol (this); this_symbol != null; this_symbol = this_symbol.parent_symbol) {
 				if (this_symbol == target_type) {
 					// required for interfaces with non-abstract methods
 					// accessing protected interface members
@@ -733,7 +733,7 @@ public class Vala.MemberAccess : Expression {
 			var target_type = member.parent_symbol;
 
 			bool in_target_type = false;
-			for (Symbol this_symbol = context.analyzer.get_current_symbol (this); this_symbol != null; this_symbol = this_symbol.parent_symbol) {
+			for (Symbol this_symbol = context.analyzer.get_current_non_local_symbol (this); this_symbol != null; this_symbol = this_symbol.parent_symbol) {
 				if (target_type == this_symbol) {
 					in_target_type = true;
 					break;
