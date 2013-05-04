@@ -143,7 +143,7 @@ public class Vala.SemanticAnalyzer : CodeVisitor {
 	}
 
 	public bool is_local_symbol (Symbol sym) {
-		if ((sym is LocalVariable || sym is Constant) && sym.parent_symbol is Block) {
+		if (sym is LocalVariable || (sym is Constant && sym.parent_symbol is Block)) {
 			return true;
 		}
 		return false;
