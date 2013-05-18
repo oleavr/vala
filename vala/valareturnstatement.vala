@@ -86,7 +86,7 @@ public class Vala.ReturnStatement : BaseStatement {
 		var current_return_type = context.analyzer.get_current_return_type (this);
 
 		if (return_expression != null) {
-			return_expression.target_type = current_return_type;
+			return_expression.target_type = current_return_type.copy ();
 		}
 
 		if (return_expression != null && !return_expression.check (context)) {

@@ -238,10 +238,10 @@ public class Vala.Assignment : Expression {
 				parent_node.replace_expression (this, set_call);
 				return set_call.check (context);
 			} else {
-				right.target_type = left.value_type;
+				right.target_type = left.value_type.copy ();
 			}
 		} else if (left is PointerIndirection) {
-			right.target_type = left.value_type;
+			right.target_type = left.value_type.copy ();
 		} else {
 			error = true;
 			Report.error (source_reference, "unsupported lvalue in assignment");
@@ -265,7 +265,7 @@ public class Vala.Assignment : Expression {
 				var old_value = new MemberAccess (ma.inner, ma.member_name);
 
 				var bin = new BinaryExpression (BinaryOperator.PLUS, old_value, right, source_reference);
-				bin.target_type = right.target_type;
+				bin.target_type = right.target_type.copy ();
 				right.target_type = right.target_type.copy ();
 				right.target_type.value_owned = false;
 
@@ -323,7 +323,7 @@ public class Vala.Assignment : Expression {
 				}
 				right.target_type = new DelegateType (sig.get_delegate (new ObjectType ((ObjectTypeSymbol) sig.parent_symbol), this));
 			} else if (!right.value_type.compatible (right.target_type)) {
-				var delegate_type = (DelegateType) right.target_type;
+				var delegate_type = (DelegateType) right.target_type.copy ();
 
 				error = true;
 				Report.error (right.source_reference, "method `%s' is incompatible with signal `%s', expected `%s'".printf (right.value_type.to_string (), right.target_type.to_string (), delegate_type.delegate_symbol.get_prototype_string (m.name)));
@@ -369,7 +369,7 @@ public class Vala.Assignment : Expression {
 				if (right.symbol_reference is Method &&
 				    variable.variable_type is DelegateType) {
 					var m = (Method) right.symbol_reference;
-					var dt = (DelegateType) variable.variable_type;
+					var dt = (DelegateType) variable.variable_type.copy ();
 					var cb = dt.delegate_symbol;
 
 					/* check whether method matches callback type */
@@ -379,7 +379,7 @@ public class Vala.Assignment : Expression {
 						return false;
 					}
 
-					right.value_type = variable.variable_type;
+					right.value_type = variable.variable_type.copy ();
 				} else {
 					error = true;
 					Report.error (source_reference, "Assignment: Invalid assignment attempt");
@@ -448,7 +448,7 @@ public class Vala.Assignment : Expression {
 
 				if (ea.container.value_type is ArrayType) {
 					var array_type = (ArrayType) ea.container.value_type;
-					element_type = array_type.element_type;
+					element_type = array_type.element_type.copy ();
 				} else {
 					var args = ea.container.value_type.get_type_arguments ();
 					assert (args.size == 1);
