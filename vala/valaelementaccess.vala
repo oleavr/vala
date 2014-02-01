@@ -76,7 +76,7 @@ public class Vala.ElementAccess : Expression {
 	}
 
 	public override string to_string () {
-		var s = "%s[";
+		var s = "%s[".printf (container.to_string ());
 		bool first = true;
 		foreach (var index in indices) {
 			if (first) {
