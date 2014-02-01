@@ -138,7 +138,7 @@ public class Vala.ObjectCreationExpression : Expression {
 
 	public override void replace_expression (Expression old_node, Expression new_node) {
 		int index = argument_list.index_of (old_node);
-		if (index >= 0 && new_node.parent_node == null) {
+		if (index >= 0) {
 			argument_list[index] = new_node;
 			new_node.parent_node = this;
 		}
