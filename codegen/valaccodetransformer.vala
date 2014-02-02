@@ -224,13 +224,10 @@ public class Vala.CCodeTransformer : CodeTransformer {
 			}
 			b.add_else ();
 			statements (@"$notfirst = true;");
-			/* b.add_assignment (expression (notfirst), expression ("true")); */
 			b.close ();
 
 			if (stmt.condition != null && !always_true (stmt.condition)) {
-				b.open_if (new UnaryExpression (UnaryOperator.LOGICAL_NEGATION, stmt.condition, stmt.source_reference));
-				b.add_break ();
-				b.close ();
+				statements (@"if (!$(stmt.condition)) break;");
 			}
 			b.add_statement (stmt.body);
 
@@ -374,11 +371,11 @@ public class Vala.CCodeTransformer : CodeTransformer {
 		begin_replace_expression (expr);
 
 		var result = b.add_temp_declaration (expr.value_type);
-		b.open_if (expr.condition);
-		b.add_assignment (expression (result), expr.true_expression);
-		b.add_else ();
-		b.add_assignment (expression (result), expr.false_expression);
-		b.close ();
+		statements (@"if ($(expr.condition)) {
+					$result = $(expr.true_expression);
+					} else {
+					$result = $(expr.false_expression);
+					}");
 
 		replacement = return_temp_access (result, expr.value_type, target_type, formal_target_type);
 		end_replace_expression (replacement);
