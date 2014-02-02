@@ -102,7 +102,7 @@ public class Vala.Assignment : Expression {
 	}
 
 	public override string to_string () {
-		return left.to_string () + get_operator_string () + right.to_string ();
+		return "("+left.to_string () + get_operator_string () + right.to_string ()+")";
 	}
 
 	public override void replace_expression (Expression old_node, Expression new_node) {

@@ -132,4 +132,8 @@ public class Vala.TypeCheck : Expression {
 
 		codegen.visit_expression (this);
 	}
+
+	public override string to_string () {
+		return @"($expression is $type_reference)";
+	}
 }
