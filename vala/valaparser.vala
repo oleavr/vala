@@ -344,10 +344,31 @@ public class Vala.Parser : CodeVisitor {
 		try {
 			return parse_expression ();
 		} catch (Error e) {
+			Report.error (source_reference, "Internal compiler error: %s".printf (e.message));
 		}
 
 		scanner = null;
 		return null;
+	}
+
+	public void parse_statements_string (string str, Block block, SourceReference source_reference) {
+		compiler_code = true;
+		context = source_reference.file.context;
+		from_string_reference = source_reference;
+
+		scanner = new Scanner.from_string (str, source_reference.file);
+		index = -1;
+		size = 0;
+
+		next ();
+
+		try {
+			parse_statements (block);
+		} catch (Error e) {
+			Report.error (source_reference, "Internal compiler error: %s".printf (e.message));
+		}
+
+		scanner = null;
 	}
 
 	public void parse_file (SourceFile source_file) {
@@ -1622,6 +1643,10 @@ public class Vala.Parser : CodeVisitor {
 					break;
 				default:
 					bool is_expr = is_expression ();
+					if (!is_expr && compiler_code && current () == TokenType.DOT) {
+						// compiler variable assignment
+						is_expr = true;
+					}
 					if (is_expr) {
 						stmt = parse_expression_statement ();
 					} else {

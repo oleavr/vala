@@ -223,7 +223,8 @@ public class Vala.CCodeTransformer : CodeTransformer {
 				b.add_expression (it_expr);
 			}
 			b.add_else ();
-			b.add_assignment (expression (notfirst), expression ("true"));
+			statements (@"$notfirst = true;");
+			/* b.add_assignment (expression (notfirst), expression ("true")); */
 			b.close ();
 
 			if (stmt.condition != null && !always_true (stmt.condition)) {
