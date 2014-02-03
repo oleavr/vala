@@ -638,6 +638,9 @@ public class Vala.MethodCall : Expression {
 	public override string to_string () {
 		var b = new StringBuilder ();
 		b.append_c ('(');
+		if (is_yield_expression) {
+			b.append ("yield ");
+		}
 		b.append (call.to_string ());
 		b.append_c ('(');
 
