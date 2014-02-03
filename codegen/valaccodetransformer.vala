@@ -170,7 +170,7 @@ public class Vala.CCodeTransformer : CodeTransformer {
 		if (!always_false (stmt.condition)) {
 			b.open_loop ();
 			if (!always_true (stmt.condition)) {
-				var cond = expression (@"!$(stmt.condition)");
+				var cond = expression ("!%?", {stmt.condition});
 				b.open_if (cond);
 				b.add_break ();
 				b.close ();
@@ -227,7 +227,7 @@ public class Vala.CCodeTransformer : CodeTransformer {
 			b.close ();
 
 			if (stmt.condition != null && !always_true (stmt.condition)) {
-				statements (@"if (!$(stmt.condition)) break;");
+				statements ("if (!%?) break;", {stmt.condition});
 			}
 			b.add_statement (stmt.body);
 
@@ -374,11 +374,11 @@ public class Vala.CCodeTransformer : CodeTransformer {
 		begin_replace_expression (expr);
 
 		var result = b.add_temp_declaration (expr.value_type);
-		statements (@"if ($(expr.condition)) {
-					$result = $(expr.true_expression);
+		statements (@"if (%?) {
+					$result = %?;
 					} else {
-					$result = $(expr.false_expression);
-					}");
+					$result = %?;
+					}", {expr.condition, expr.true_expression, expr.false_expression});
 
 		replacement = return_temp_access (result, expr.value_type, target_type, formal_target_type);
 		end_replace_expression (replacement);
@@ -403,11 +403,11 @@ public class Vala.CCodeTransformer : CodeTransformer {
 			if (is_and) {
 				b.add_assignment (expression (result), expr.right);
 			} else {
-				b.add_expression (expression (@"$result = true"));
+				statements (@"$result = true;");
 			}
 			b.add_else ();
 			if (is_and) {
-				b.add_expression (expression (@"$result = false"));
+				statements (@"$result = false;");
 			} else {
 				b.add_assignment (expression (result), expr.right);
 			}
@@ -416,9 +416,7 @@ public class Vala.CCodeTransformer : CodeTransformer {
 		} else if (expr.operator == BinaryOperator.COALESCE) {
 			var result = b.add_temp_declaration (copy_type (expr.value_type), expr.left);
 
-			b.open_if (expression (@"$result == null"));
-			b.add_assignment (expression (result), expr.right);
-			b.close ();
+			statements (@"if ($result == null) { $result = %?; }", {expr.right});
 			
 			replacement = return_temp_access (result, expr.value_type, target_type);
 		} else if (expr.operator == BinaryOperator.IN && !(expr.left.value_type.compatible (context.analyzer.int_type) && expr.right.value_type.compatible (context.analyzer.int_type)) && !(expr.right.value_type is ArrayType)) {
@@ -490,7 +488,7 @@ public class Vala.CCodeTransformer : CodeTransformer {
 		if (expr.value_type.data_type != null && expr.value_type.data_type.is_subtype_of (context.analyzer.string_type.data_type)) {
 			return expr;
 		} else {
-			return expression (@"$expr.to_string ()");
+			return expression (@"%?.to_string ()", {expr});
 		}
 	}
 
@@ -505,7 +503,7 @@ public class Vala.CCodeTransformer : CodeTransformer {
 		} else {
 			replacement = stringify (expression_list[0]);
 			if (expression_list.size > 1) {
-				var concat = (MethodCall) expression (@"$replacement.concat()");
+				var concat = (MethodCall) expression ("%?.concat()", {replacement});
 				for (int i = 1; i < expression_list.size; i++) {
 					concat.add_argument (stringify (expression_list[i]));
 				}
@@ -522,7 +520,7 @@ public class Vala.CCodeTransformer : CodeTransformer {
 
 		var result = b.add_temp_declaration (copy_type (expr.value_type), expr.inner);
 		var op = expr.increment ? "+ 1" : "- 1";
-		b.add_expression (expression (@"$(expr.inner) = $result $op"));
+		statements (@"$(expr.inner) = $result $op;");
 
 		var replacement = return_temp_access (result, expr.value_type, expr.target_type);
 
