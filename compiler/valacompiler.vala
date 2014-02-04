@@ -392,6 +392,7 @@ class Vala.Compiler {
 		}
 
 		var transformer = new GDBusServerTransformer ();
+		transformer.head = transformer;
 		transformer.transform (context);
 
 		if (context.report.get_errors () > 0 || (fatal_warnings && context.report.get_warnings () > 0)) {
