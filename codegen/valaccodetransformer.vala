@@ -342,6 +342,7 @@ public class Vala.CCodeTransformer : CodeTransformer {
 				var replacement = return_temp_access (local, expr.value_type, target_type, formal_target_type);
 
 				end_replace_expression (replacement);
+				return;
 			}
 		}
 
