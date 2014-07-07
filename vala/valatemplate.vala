@@ -47,6 +47,14 @@ public class Vala.Template : Expression {
 		return expression_list;
 	}
 
+	public override void replace_expression (Expression old_node, Expression new_node) {
+		int index = expression_list.index_of (old_node);
+		if (index >= 0) {
+			expression_list[index] = new_node;
+			new_node.parent_node = this;
+		}
+	}
+
 	public override bool is_pure () {
 		return false;
 	}
