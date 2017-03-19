@@ -85,7 +85,11 @@ public class Vala.GDBusServerTransformer : GDBusClientTransformer {
 
 			if (param.direction == ParameterDirection.IN) {
 				var arg = b.add_temp_declaration (copy_type (param.variable_type, true));
+				b.open_try ();
 				b.add_assignment (expression (arg), read_dbus_value (param.variable_type, iter, "invocation.get_message ()", ref fd_list, ref fd_index));
+				b.add_catch_all ("_invocation_gerror_");
+				statements ("invocation.return_gerror (_invocation_gerror_); return;");
+				b.close ();
 				call.add_argument (expression (arg));
 			} else if (param.direction == ParameterDirection.OUT) {
 				if (m.coroutine) {
