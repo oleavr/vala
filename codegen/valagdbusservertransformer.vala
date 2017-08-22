@@ -277,7 +277,7 @@ public class Vala.GDBusServerTransformer : GDBusClientTransformer {
 	}
 
 	void generate_interface_signal_emitter (Signal sig, ObjectTypeSymbol sym, string dbus_iface_name) {
-		var wrapper_name = "_dbus_%s_%s".printf (CCodeBaseModule.get_ccode_lower_case_name (sym), CCodeBaseModule.get_ccode_name (sig));
+		var wrapper_name = "_dbus_%s_%s".printf (CCodeBaseModule.get_ccode_lower_case_name (sym), CCodeBaseModule.get_ccode_lower_case_name (sig));
 		if (context.root.scope.lookup (wrapper_name) != null) {
 			return;
 		}
