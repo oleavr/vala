@@ -485,6 +485,7 @@ public abstract class Vala.CCodeMethodModule : CCodeStructModule {
 
 					// coroutine body
 					ccode.add_label ("_state_0");
+					ccode.open_block ();
 				}
 
 				if (m.closure) {

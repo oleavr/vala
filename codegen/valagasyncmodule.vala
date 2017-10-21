@@ -775,11 +775,14 @@ public class Vala.GAsyncModule : GtkModule {
 		}
 
 		if (stmt.yield_expression == null) {
+			// set state early to support immediate callbacks
 			int state = emit_context.next_coroutine_state++;
 
-			ccode.add_assignment (new CCodeMemberAccess.pointer (new CCodeIdentifier ("_data_"), "_state_"), new CCodeConstant (state.to_string ()));
+			ccode.prepend_assignment (new CCodeMemberAccess.pointer (new CCodeIdentifier ("_data_"), "_state_"), new CCodeConstant (state.to_string ()));
 			ccode.add_return (new CCodeConstant ("FALSE"));
+
 			ccode.add_label ("_state_%d".printf (state));
+			ccode.open_block ();
 			ccode.add_statement (new CCodeEmptyStatement ());
 
 			return;

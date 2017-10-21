@@ -412,7 +412,9 @@ public class Vala.GDBusClientModule : GDBusModule {
 				ccode.add_assignment (new CCodeMemberAccess.pointer (new CCodeIdentifier ("_data_"), "_state_"), new CCodeConstant (state.to_string ()));
 				ccode.add_expression (ccall);
 				ccode.add_return (new CCodeConstant ("FALSE"));
+
 				ccode.add_label ("_state_%d".printf (state));
+				ccode.open_block ();
 
 				ccall = new CCodeFunctionCall (new CCodeIdentifier ("g_async_initable_new_finish"));
 				ccall.add_argument (new CCodeMemberAccess.pointer (new CCodeIdentifier ("_data_"), "_source_object_"));

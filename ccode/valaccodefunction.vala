@@ -211,6 +211,11 @@ public class Vala.CCodeFunction : CCodeNode {
 	}
 
 	public void add_else () {
+		// Close nested code-blocks (e.g. dedicated blocks for co-coutine states)
+		while (statement_stack.last () is CCodeBlock) {
+			statement_stack.remove_at (statement_stack.size - 1);
+		}
+
 		current_block = new CCodeBlock ();
 
 		var cif = (CCodeIfStatement) statement_stack[statement_stack.size - 1];
@@ -220,6 +225,11 @@ public class Vala.CCodeFunction : CCodeNode {
 	}
 
 	public void else_if (CCodeExpression condition) {
+		// Close nested code-blocks (e.g. dedicated blocks for co-coutine states)
+		while (statement_stack.last () is CCodeBlock) {
+			statement_stack.remove_at (statement_stack.size - 1);
+		}
+
 		var parent_if = (CCodeIfStatement) statement_stack.remove_at (statement_stack.size - 1);
 		assert (parent_if.false_statement == null);
 
@@ -312,6 +322,19 @@ public class Vala.CCodeFunction : CCodeNode {
 		stmt.add_declarator (declarator);
 		stmt.modifiers = modifiers;
 		add_statement (stmt);
+	}
+
+	public void prepend_statement (CCodeNode stmt) {
+		stmt.line = current_line;
+		current_block.prepend_statement (stmt);
+	}
+
+	public void prepend_expression (CCodeExpression expression) {
+		prepend_statement (new CCodeExpressionStatement (expression));
+	}
+
+	public void prepend_assignment (CCodeExpression left, CCodeExpression right) {
+		prepend_expression (new CCodeAssignment (left, right));
 	}
 
 	public void close () {
